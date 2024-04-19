@@ -15,11 +15,18 @@ class UsersController {
 
     const hashedPassword = await hash(password, 8);
 
-    await database.run(
+    const result = await database.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hashedPassword]
     );
 
-    return response.status(201).json();
+    const user_id = result.lastID;
+
+    await database.run(
+      "INSERT INTO users_roles (user_id, role_id) VALUES (?, ?)",
+      [user_id, 2]
+    );
+
+    return response.status(201).json({ message: "Usuário criado com sucesso!" });
   }
 
   async update(request, response) {
