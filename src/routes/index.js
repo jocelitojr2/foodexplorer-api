@@ -5,10 +5,12 @@ const usersRoles = require("./usersRoles.routes");
 const rolesRouter = require("./roles.routes");
 const categoriesRouter = require("./categories.routes");
 const productsRouter = require("./products.routes");
+const sessionsRouter = require("./sessions.routes");
 
 const routes = Router();
 
 routes.use("/users", usersRouter);
+routes.use("/sessions", sessionsRouter);
 routes.use("/usersRoles", usersRoles);
 routes.use("/roles", rolesRouter);
 routes.use("/categories", categoriesRouter);
