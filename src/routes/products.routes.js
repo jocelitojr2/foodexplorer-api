@@ -15,7 +15,8 @@ const productsImageController = new ProductsImageController();
 //userRoleRoutes.post("/", myMiddleware, productsController.create);
 productsRoutes.post("/", productsController.create);
 productsRoutes.put("/:product_id", productsController.update);
-productsRoutes.get("/", productsController.show);
+productsRoutes.get("/", productsController.index);
+productsRoutes.get("/:product_id", productsController.show);
 productsRoutes.patch("/image/:product_id", ensureAuthenticated, upload.single("image"), productsImageController.update);
 
 module.exports = productsRoutes;
