@@ -2,7 +2,7 @@ const knex = require("../database/knex");
 const AppError = require("../utils/AppError");
 
 class ProductsController {
-  async show(request, response) {
+  async index(request, response) {
 
     const products = await knex.select('*').from('products');
 
@@ -11,6 +11,24 @@ class ProductsController {
     }
 
     return response.json(products);
+  }
+
+  async show(request, response) {
+    const { product_id } = request.params;
+
+    const product = await knex.select('*').from('products').where({ id: product_id}).first();
+
+    if (!product) {
+      throw new AppError("Não foi encontrado o produto informado.");
+    }
+
+    const category = await knex('products_categories')
+                            .select("categories.name", "categories.id")
+                            .join('categories', 'products_Categories.category_id', 'categories.id')
+                            .where('products_categories.product_id', product.id)
+                            .first();
+
+    return response.json({product, category});
   }
 
   async create(request, response) {
