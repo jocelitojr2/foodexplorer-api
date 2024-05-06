@@ -1,16 +1,43 @@
 const knex = require("../database/knex");
 const AppError = require("../utils/AppError");
+const DiskStorage = require("../providers/DiskStorage");
 
 class ProductsController {
   async index(request, response) {
+    try {
+        const products = await knex("products")
+            .select(
+                "products.id",
+                "products.name",
+                "products.description",
+                "products.price",
+                "products.image_url",
+                "categories.id as category_id",
+                "categories.name as category_name"
+            )
+            .leftJoin("products_categories", "products_categories.product_id", "products.id")
+            .leftJoin("categories", "products_categories.category_id", "categories.id");
 
-    const products = await knex.select('*').from('products');
+        if (products.length === 0) {
+          throw new AppError("Não possui produtos cadastrados.");
+        }
 
-    if (products.length === 0) {
-      throw new AppError("Não possui produtos cadastrados.");
+        return response.json(products.map(product => {
+            return {
+                id: product.id,
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                image_url: product.image_url,
+                category: {
+                    id: product.category_id,
+                    name: product.category_name
+                }
+            };
+        }));
+    } catch (error) {
+      throw new AppError('Erro interno no servidor.');
     }
-
-    return response.json(products);
   }
 
   async show(request, response) {
@@ -32,15 +59,42 @@ class ProductsController {
   }
 
   async create(request, response) {
-    const { name, description, image_url, price, ingredients, category_id } = request.body;
+    const { name, description, price, category_id } = request.body;
+    let { ingredients } = request.body;
+    const imageFile = request.file;
+
+    if (!imageFile) {
+      throw new AppError("Arquivo de imagem é obrigatório.");
+    }
+
+    try {
+        if (typeof ingredients === 'string') {
+            ingredients = JSON.parse(ingredients);
+        }
+    } catch (error) {
+      throw new AppError("Erro ao analisar os ingredientes. Certifique-se de que está no formato JSON correto.");
+    }
+
+    if (!Array.isArray(ingredients)) {
+      throw new AppError("Formato inválido para ingredientes, esperado um array.");
+    }
+
+    const diskStorage = new DiskStorage();
+    const imageFileName = imageFile.filename;
 
     try {
       await knex.transaction(async trx => {
         const [product_id] = await trx("products").insert({
           name,
           description,
-          image_url,
+          image_url: imageFileName,
           price
+        });
+
+        const savedImagePath = await diskStorage.saveFile(imageFileName);
+
+        await trx("products").where({ id: product_id }).update({
+          image_url: savedImagePath
         });
 
         await trx("products_categories").insert({
