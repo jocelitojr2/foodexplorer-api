@@ -55,7 +55,11 @@ class ProductsController {
                             .where('products_categories.product_id', product.id)
                             .first();
 
-    return response.json({product, category});
+    const ingredients = await knex('ingredients')
+                                .select("ingredients.name", "ingredients.id")
+                                .where({ product_id });
+
+    return response.json({product, category, ingredients});
   }
 
   async create(request, response) {
@@ -185,6 +189,35 @@ class ProductsController {
         return response.status(500).json({ error: 'Erro interno no servidor.' });
     }
   }
+
+  async delete(request, response) {
+    const { product_id } = request.params;
+
+    const diskStorage = new DiskStorage();
+
+    try {
+      await knex.transaction(async trx => {
+        const product = await trx("products").where('id', product_id).first();
+
+        if (!product) {
+          throw new AppError("Produto não encontrado.");
+        }
+        
+        if (product.image_url != "" || product.image_url != null) {
+          await diskStorage.deleteFile(product.image_url);
+        }
+        
+        await trx("products").where('id', product_id).delete();
+        
+        return response.status(200).json({ message: 'Produto deletado com sucesso!' });
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return response.status(404).json({ error: error.message });
+      }
+      return response.status(500).json({ error: 'Erro interno no servidor.' });
+    }
+  } 
 }
 
 module.exports = ProductsController;
