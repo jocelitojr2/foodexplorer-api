@@ -129,8 +129,11 @@ class ProductsController {
   }
 
   async update(request, response) {
-    const { name, description, image_url, price, ingredients, category_id } = request.body;
+    const { name, description, price, category_id } = request.body;
+    let { ingredients } = request.body;
     const { product_id } = request.params;
+    const imageFile = request.file;
+    const diskStorage = new DiskStorage();
 
     try {
       await knex.transaction(async trx => {
@@ -142,42 +145,50 @@ class ProductsController {
           if (category_id) {
             const categoryExists = await trx("categories").where('id', category_id).first();
             if (!categoryExists) {
-                throw new AppError("Categoria não encontrada.");
+              throw new AppError("Categoria não encontrada.");
             }
-
+            
             const productCategory = await trx("products_categories").where('product_id', product_id).first();
             if (productCategory) {
-                await trx("products_categories").where('product_id', product_id).update({
-                    category_id: category_id
-                });
+              await trx("products_categories").where('product_id', product_id).update({
+                category_id: category_id
+              });
             } else {
-                await trx("products_categories").insert({
-                    product_id: product_id,
-                    category_id: category_id
-                });
+              await trx("products_categories").insert({
+                product_id: product_id,
+                category_id: category_id
+              });
             }
           }
+          
+          if (imageFile) {
+            const imageFileName = imageFile.filename;
+            var savedImagePath = await diskStorage.saveFile(imageFileName);
+          }
 
+          if (typeof ingredients === 'string') {
+            ingredients = JSON.parse(ingredients);
+          }
 
           await trx("products").where('id', product_id).update({
               name: name ?? product.name,
               description: description ?? product.description,
-              image_url: image_url ?? product.image_url,
+              image_url: savedImagePath ?? product.image_url,
               price: price ?? product.price,
               updated_at: trx.fn.now()
           });          
-          
-          if (ingredients && ingredients.length > 0) {
+
+          if (ingredients.length > 0) {
             await trx("ingredients").where('product_id', product_id).delete();
 
-            const ingredientsInsert = ingredients.map(ingredient => {
+            const ingredientsObjects = ingredients.map(ingredientName => {
               return {
                   product_id: product_id,
-                  name: ingredient
+                  name: ingredientName
               };
             });
 
-            await trx("ingredients").insert(ingredientsInsert);
+            await trx("ingredients").insert(ingredientsObjects);
           }
       });
 
