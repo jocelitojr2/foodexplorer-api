@@ -163,8 +163,11 @@ class ProductsController {
           
           if (imageFile) {
             const imageFileName = imageFile.filename;
-            var savedImagePath = await diskStorage.saveFile(imageFileName);
+            await diskStorage.deleteFile(product.image_url);
+
+            var savedImagePath = await diskStorage.saveFile(imageFileName); 
           }
+
 
           if (typeof ingredients === 'string') {
             ingredients = JSON.parse(ingredients);
