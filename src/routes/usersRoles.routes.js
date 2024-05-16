@@ -1,21 +1,16 @@
 const { Router } = require('express');
 
+const ensureAuthenticated = require('../middlewares/ensureAuthenticated');
 const UsersRolesController = require('../controllers/UsersRolesController');
+const verifyUserAuthorization = require('../middlewares/verifyUserAuthorization');
 
 const usersRolesRoutes = Router(); 
 
-// function myMiddleware(request, response, next) {
-
-//   if (!request.body.isAdmin) {
-//     return response.json({ message: "User aunauthorized" });
-//   }
-
-//   next();
-// }
-
 const usersRolesController = new UsersRolesController();
 
-//userRoleRoutes.post("/", myMiddleware, usersRolesController.create);
+usersRolesRoutes.use(ensureAuthenticated);
+usersRolesRoutes.use(verifyUserAuthorization([1]));
+
 usersRolesRoutes.post("/", usersRolesController.create);
 usersRolesRoutes.put("/:user_id", usersRolesController.update);
 usersRolesRoutes.get("/:user_id", usersRolesController.show);
