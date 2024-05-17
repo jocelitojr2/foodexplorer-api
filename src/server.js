@@ -15,7 +15,7 @@ migrationsRun();
 const app = express();
 app.use(cookieParser());
 app.use(cors({
-  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+  origin: ["https://foodexplorer-api-3hq3.onrender.com"],
   credentials: true
 }));
 app.use(express.json());
