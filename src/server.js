@@ -15,7 +15,7 @@ migrationsRun();
 const app = express();
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://foodexplorer-api-3hq3.onrender.com',
+  origin: 'https://foodexplorer-joc3.netlify.app',
   credentials: true
 }));
 app.use(express.json());
