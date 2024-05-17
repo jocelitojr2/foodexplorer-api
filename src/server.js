@@ -14,7 +14,10 @@ migrationsRun();
 
 const app = express();
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin: 'https://foodexplorer-api-3hq3.onrender.com',
+  credentials: true
+}));
 app.use(express.json());
 
 app.use("/files", express.static(uploadConfig.UPLOAD_FOLDER));
