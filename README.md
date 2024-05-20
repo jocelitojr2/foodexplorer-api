@@ -55,7 +55,7 @@ Contas para utilizar.
 
 ## Documentação da API
 #### Estrutura do banco.
-![Banco de dados](https://drawsql-media.s3-us-east-2.amazonaws.com/screenshots/6501243/conversions/1715105323-421819-thumbnail.jpg)
+![Banco de dados](https://drawsql-media.s3-us-east-2.amazonaws.com/screenshots/6796071/conversions/1716131173-421819-thumbnail.jpg)
 
 # Roles
 #### Cria um permissão de usuário.
